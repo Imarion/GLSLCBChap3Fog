@@ -19,6 +19,14 @@ struct MaterialInfo {
 
 uniform MaterialInfo Material;
 
+struct FogInfo {
+    float  maxDist;
+    float  minDist;
+    vec3   color;
+};
+
+uniform FogInfo Fog;
+
 out vec4 FragColor;
 
 vec3 phongModel( vec4 position, vec3 normal ) {
@@ -41,13 +49,21 @@ vec3 phongModel( vec4 position, vec3 normal ) {
 
 void main()
 {
+    float dist = abs(Position.z);
+    float fogFactor = (Fog.maxDist - dist) / (Fog.maxDist - Fog.minDist);
+    fogFactor  = clamp (fogFactor, 0.0, 1.0);
+    vec3 shadeColor;
+
     //FragColor = vec4 (1.0, 1.0, 0.0, 1.0);
     if( gl_FrontFacing ) {
-        FragColor = vec4(phongModel(Position, Normal), 1.0);
+        shadeColor = phongModel(Position, Normal);
         //FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     } else {
         //FragColor = mix( vec4(BackColor, 1.0), vec4(1.0,0.0,0.0,1.0), 0.7 );
-        FragColor = vec4(phongModel(Position, -Normal), 1.0);
+        shadeColor = phongModel(Position, -Normal);
         //FragColor = vec4(0.0, 1.0, 0.0, 1.0);
     }
+    vec3 fcolor = mix(Fog.color, shadeColor, fogFactor);
+
+    FragColor = vec4(fcolor, 1.0);
 }

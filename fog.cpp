@@ -204,7 +204,7 @@ void MyWindow::render()
     static float EvolvingVal = 0;
     EvolvingVal += 0.1f;
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //QMatrix4x4 RotationMatrix;
@@ -227,6 +227,10 @@ void MyWindow::render()
         mProgram->setUniformValue("Material.Ks", 0.0f, 0.0f, 0.0f);
         mProgram->setUniformValue("Material.Ka", 0.9f * 0.3f, 0.5f * 0.3f, 0.3f * 0.3f);
         mProgram->setUniformValue("Material.Shininess", 180.0f);
+
+        mProgram->setUniformValue("Fog.maxDist", 30.0f);
+        mProgram->setUniformValue("Fog.minDist", 1.0f);
+        mProgram->setUniformValue("Fog.color", 0.5f,0.5f,0.5f);
 
         float dist = 0.0f;
         for( int i = 0 ; i < 4; i++ ) {
@@ -264,6 +268,10 @@ void MyWindow::render()
         mProgram->setUniformValue("Material.Ks", 0.0f, 0.0f, 0.0f);
         mProgram->setUniformValue("Material.Ka", 0.2f, 0.2f, 0.2f);
         mProgram->setUniformValue("Material.Shininess", 180.0f);
+
+        mProgram->setUniformValue("Fog.maxDist", 30.0f);
+        mProgram->setUniformValue("Fog.minDist", 1.0f);
+        mProgram->setUniformValue("Fog.color", 0.5f,0.5f,0.5f);
 
         QMatrix4x4 mv1 = ViewMatrix * ModelMatrixPlane;
         mProgram->setUniformValue("ModelViewMatrix", mv1);
