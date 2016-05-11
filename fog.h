@@ -15,6 +15,10 @@
 #include "teapot.h"
 #include "vboplane.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 #define ToRadian(x) ((x) * M_PI / 180.0f)
 #define ToDegree(x) ((x) * 180.0f / M_PI)
 #define TwoPI (float)(2 * M_PI)
@@ -56,10 +60,12 @@ private:
     double currentTimeS;
     bool   mUpdateSize;
     float  tPrev, angle;
+    float  mFogDensity;
 
     GLuint mVAOTeapot, mVAOPlane, mVBO, mIBO;
     GLuint mPositionBufferHandle, mColorBufferHandle;
     GLuint mRotationMatrixLocation;
+    GLuint curFogSubroutineIndex, linearFogSubroutineIndex, expFogSubroutineIndex, expSquareFogSubroutineIndex;
 
     Teapot   *mTeapot;
     VBOPlane *mPlane;

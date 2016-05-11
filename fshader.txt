@@ -3,6 +3,9 @@
 in vec4 Position;
 in vec3 Normal;
 
+subroutine float fogModelType (float dist);
+subroutine uniform fogModelType fogModel;
+
 struct LightInfo {
     vec4 Position;  // Light position in eye coords
     vec3 Intensity; // Light intensity
@@ -23,6 +26,7 @@ struct FogInfo {
     float  maxDist;
     float  minDist;
     vec3   color;
+    float  density;
 };
 
 uniform FogInfo Fog;
@@ -46,12 +50,37 @@ vec3 phongModel( vec4 position, vec3 normal ) {
     return Light.Intensity * (ambient + diffuse + spec);
 }
 
+subroutine (fogModelType)
+float linearModel(float dist)
+{
+    float fogFactor = (Fog.maxDist - dist) / (Fog.maxDist - Fog.minDist);
+    fogFactor  = clamp (fogFactor, 0.0, 1.0);
+
+    return fogFactor;
+}
+
+subroutine (fogModelType)
+float expModel(float dist)
+{
+    float fogFactor = exp(-Fog.density * dist);
+    fogFactor  = clamp (fogFactor, 0.0, 1.0);
+
+    return fogFactor;
+}
+
+subroutine (fogModelType)
+float expSquareModel(float dist)
+{
+    float fogFactor = exp(-pow(Fog.density * dist, 2.0));
+    fogFactor  = clamp (fogFactor, 0.0, 1.0);
+
+    return fogFactor;
+}
 
 void main()
 {
-    float dist = abs(Position.z);
-    float fogFactor = (Fog.maxDist - dist) / (Fog.maxDist - Fog.minDist);
-    fogFactor  = clamp (fogFactor, 0.0, 1.0);
+    float dist = length(Position.xyz);
+    float fogFactor = fogModel(dist);
     vec3 shadeColor;
 
     //FragColor = vec4 (1.0, 1.0, 0.0, 1.0);

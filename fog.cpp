@@ -20,7 +20,7 @@ MyWindow::~MyWindow()
 }
 
 MyWindow::MyWindow()
-    : mProgram(0), currentTimeMs(0), currentTimeS(0), tPrev(0), angle(0.957283f)
+    : mProgram(0), currentTimeMs(0), currentTimeS(0), tPrev(0), angle(0.957283f), mFogDensity(0.04f)
 {
     setSurfaceType(QWindow::OpenGLSurface);
     setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
@@ -77,7 +77,13 @@ void MyWindow::initialize()
     initShaders();
     initMatrices();
 
-    mRotationMatrixLocation = mProgram->uniformLocation("RotationMatrix");
+    //mRotationMatrixLocation = mProgram->uniformLocation("RotationMatrix");
+    linearFogSubroutineIndex    = mFuncs->glGetSubroutineIndex(mProgram->programId(), GL_FRAGMENT_SHADER, "linearModel");
+    expFogSubroutineIndex       = mFuncs->glGetSubroutineIndex(mProgram->programId(), GL_FRAGMENT_SHADER, "expModel");
+    expSquareFogSubroutineIndex = mFuncs->glGetSubroutineIndex(mProgram->programId(), GL_FRAGMENT_SHADER, "expSquareModel");
+    //diffuseSubRoutineIndex  = mFuncs->glGetSubroutineIndex(mProgramSubroutine->programId(), GL_VERTEX_SHADER, "diffuseOnly");
+
+    curFogSubroutineIndex     = linearFogSubroutineIndex;
 
     glFrontFace(GL_CCW);
     glEnable(GL_DEPTH_TEST);
@@ -220,6 +226,8 @@ void MyWindow::render()
 
     mProgram->bind();
     {
+        mFuncs->glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &curFogSubroutineIndex);
+
         mProgram->setUniformValue("Light.Position", ViewMatrix * worldLight );
         mProgram->setUniformValue("Light.Intensity", QVector3D(0.9f, 0.9f, 0.9f));
 
@@ -231,6 +239,8 @@ void MyWindow::render()
         mProgram->setUniformValue("Fog.maxDist", 30.0f);
         mProgram->setUniformValue("Fog.minDist", 1.0f);
         mProgram->setUniformValue("Fog.color", 0.5f,0.5f,0.5f);
+        mProgram->setUniformValue("Fog.density", mFogDensity);
+
 
         float dist = 0.0f;
         for( int i = 0 ; i < 4; i++ ) {
@@ -261,6 +271,8 @@ void MyWindow::render()
 
     mProgram->bind();
     {
+        mFuncs->glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &curFogSubroutineIndex);
+
         mProgram->setUniformValue("Light.Position", ViewMatrix * worldLight );
         mProgram->setUniformValue("Light.Intensity", QVector3D(0.9f, 0.9f, 0.9f));
 
@@ -272,6 +284,7 @@ void MyWindow::render()
         mProgram->setUniformValue("Fog.maxDist", 30.0f);
         mProgram->setUniformValue("Fog.minDist", 1.0f);
         mProgram->setUniformValue("Fog.color", 0.5f,0.5f,0.5f);
+        mProgram->setUniformValue("Fog.density", mFogDensity);
 
         QMatrix4x4 mv1 = ViewMatrix * ModelMatrixPlane;
         mProgram->setUniformValue("ModelViewMatrix", mv1);
@@ -352,7 +365,14 @@ void MyWindow::keyPressEvent(QKeyEvent *keyEvent)
             break;
         case Qt::Key_Home:
             break;
+        case Qt::Key_Plus:
+            mFogDensity+=0.005f;
+            break;
+        case Qt::Key_Minus:
+            if (mFogDensity>=0) mFogDensity-=0.005f;
+            break;
         case Qt::Key_Z:
+            curFogSubroutineIndex = expFogSubroutineIndex;
             break;
         case Qt::Key_Q:
             break;
@@ -361,8 +381,10 @@ void MyWindow::keyPressEvent(QKeyEvent *keyEvent)
         case Qt::Key_D:
             break;
         case Qt::Key_A:
+            curFogSubroutineIndex = linearFogSubroutineIndex;
             break;
         case Qt::Key_E:
+            curFogSubroutineIndex = expSquareFogSubroutineIndex;
             break;
         default:
             break;
